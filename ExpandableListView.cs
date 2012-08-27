@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEditor;
 using System.Collections;
@@ -17,14 +18,31 @@ public class ExpandableListView {
 	
 	private Texture2D closeIcon;
 	
+	private Texture2D selectedIcon;
+	
+	private GUIStyle selectedStyle;
+	
+	private IList<Action<System.Object>> selectionListeners;
+	
+	private Func<System.Object, bool> isSelected;
+	private Func<System.Object, bool> IsSelected {
+		set { isSelected = value; }
+	}
+	
 	public ExpandableListView(IELVContentProvider contentProvider, IELVLabelProvider labelProvider, System.Object data) {
 		this.contentProvider = contentProvider;
 		this.labelProvider = labelProvider;
 		this.data = data;
 		expandedObjects = new List<System.Object>();
+		selectedStyle = new GUIStyle(GUIStyle.none);
+		selectionListeners = new List<Action<System.Object>>();
+		isSelected = (obj) => { return false; };
 		
 		openIcon = (Texture2D) AssetDatabase.LoadAssetAtPath("Assets/ExpandableListView/icons/open.png", typeof(Texture2D));
 		closeIcon = (Texture2D) AssetDatabase.LoadAssetAtPath("Assets/ExpandableListView/icons/close.png", typeof(Texture2D));
+		selectedIcon = (Texture2D) AssetDatabase.LoadAssetAtPath("Assets/ExpandableListView/icons/selected.png", typeof(Texture2D));
+		
+		selectedStyle.normal.background = selectedIcon;
 	}
 	
 	public void OnGUI () {
@@ -38,7 +56,12 @@ public class ExpandableListView {
 			bool hasChild = contentProvider.isHasChildren(obj);
 			bool isOpen = expandedObjects.Contains(obj);
 			
-			GUILayout.BeginHorizontal();
+			if(isSelected(obj)) {
+				GUILayout.BeginHorizontal(selectedStyle);
+			} else {
+				GUILayout.BeginHorizontal ();
+			}
+			
 			GUIStyle style = new GUIStyle (GUIStyle.none);
 			
 			GUILayout.Space (20 * depth);
@@ -59,8 +82,14 @@ public class ExpandableListView {
 			style.normal.background = labelProvider.GetIcon(obj);
 			GUILayout.Button ("", style,  GUILayout.Width(16),  GUILayout.Height (16));
 			
+			style.normal.background = null;
 			string label = labelProvider.GetLabel(obj);
-			EditorGUILayout.LabelField (label);
+			if(GUILayout.Button (label, style, GUILayout.ExpandWidth(true))) {
+				foreach(Action<System.Object> listener in selectionListeners) {
+					listener(obj);
+				}
+			}
+			
 			GUILayout.EndHorizontal();
 				
 			if(isOpen && hasChild) {
