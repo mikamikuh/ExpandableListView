@@ -23,6 +23,9 @@ public class ExpandableListView {
 	private GUIStyle selectedStyle;
 	
 	private IList<Action<System.Object>> selectionListeners;
+	public IList<Action<System.Object>> SelectionListeners {
+		get { return selectionListeners; }
+	}
 	
 	private Func<System.Object, bool> isSelected;
 	private Func<System.Object, bool> IsSelected {
