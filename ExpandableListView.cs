@@ -28,7 +28,7 @@ public class ExpandableListView {
 	}
 	
 	private Func<System.Object, bool> isSelected;
-	private Func<System.Object, bool> IsSelected {
+	public Func<System.Object, bool> IsSelected {
 		set { isSelected = value; }
 	}
 	
