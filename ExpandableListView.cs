@@ -27,6 +27,11 @@ public class ExpandableListView {
 		get { return selectionListeners; }
 	}
 	
+	private IList<Action<System.Object>> doubleClickListeners;
+	public IList<Action<System.Object>> DoubleClickListeners {
+		get { return doubleClickListeners; }
+	}
+	
 	private Func<System.Object, bool> isSelected;
 	public Func<System.Object, bool> IsSelected {
 		set { isSelected = value; }
@@ -39,6 +44,8 @@ public class ExpandableListView {
 		expandedObjects = new List<System.Object>();
 		selectedStyle = new GUIStyle(GUIStyle.none);
 		selectionListeners = new List<Action<System.Object>>();
+		doubleClickListeners = new List<Action<System.Object>>();
+		
 		isSelected = (obj) => { return false; };
 		
 		openIcon = (Texture2D) AssetDatabase.LoadAssetAtPath("Assets/ExpandableListView/icons/open.png", typeof(Texture2D));
@@ -88,8 +95,10 @@ public class ExpandableListView {
 			style.normal.background = null;
 			string label = labelProvider.GetLabel(obj);
 			if(GUILayout.Button (label, style, GUILayout.ExpandWidth(true))) {
-				foreach(Action<System.Object> listener in selectionListeners) {
-					listener(obj);
+				IList<Action<System.Object>> listeners = Event.current.clickCount == 1 ? selectionListeners : doubleClickListeners;
+				
+				foreach(Action<System.Object> action in listeners) {
+					action(obj);
 				}
 			}
 			
