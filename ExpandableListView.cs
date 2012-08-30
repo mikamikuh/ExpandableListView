@@ -22,6 +22,8 @@ public class ExpandableListView {
 	
 	private GUIStyle selectedStyle;
 	
+	private GUIStyle background01, background02, current;
+	
 	private IList<Action<System.Object>> selectionListeners;
 	public IList<Action<System.Object>> SelectionListeners {
 		get { return selectionListeners; }
@@ -52,10 +54,16 @@ public class ExpandableListView {
 		closeIcon = (Texture2D) AssetDatabase.LoadAssetAtPath("Assets/ExpandableListView/icons/close.png", typeof(Texture2D));
 		selectedIcon = (Texture2D) AssetDatabase.LoadAssetAtPath("Assets/ExpandableListView/icons/selected.png", typeof(Texture2D));
 		
+		Texture2D bgTexture01 =  (Texture2D) AssetDatabase.LoadAssetAtPath("Assets/ExpandableListView/icons/gray01.png", typeof(Texture2D));
+		background01 = new GUIStyle(GUIStyle.none);
+		background02 = new GUIStyle(GUIStyle.none);
+		background01.normal.background = bgTexture01;
+		
 		selectedStyle.normal.background = selectedIcon;
 	}
 	
 	public void OnGUI () {
+		current = background01;
 		DrawContents(data, 0);
 	}
 	
@@ -66,10 +74,11 @@ public class ExpandableListView {
 			bool hasChild = contentProvider.isHasChildren(obj);
 			bool isOpen = expandedObjects.Contains(obj);
 			
+			GUIStyle nextStyle = GetNextStyle();
 			if(isSelected(obj)) {
 				GUILayout.BeginHorizontal(selectedStyle);
 			} else {
-				GUILayout.BeginHorizontal ();
+				GUILayout.BeginHorizontal (nextStyle);
 			}
 			
 			GUIStyle style = new GUIStyle (GUIStyle.none);
@@ -88,10 +97,10 @@ public class ExpandableListView {
 					}
 				}
 			}
-			
+
 			style.normal.background = labelProvider.GetIcon(obj);
 			GUILayout.Button ("", style,  GUILayout.Width(16),  GUILayout.Height (16));
-			
+
 			style.normal.background = null;
 			string label = labelProvider.GetLabel(obj);
 			if(GUILayout.Button (label, style, GUILayout.ExpandWidth(true))) {
@@ -108,5 +117,10 @@ public class ExpandableListView {
 				DrawContents(obj, depth + 1);
 			}
 		}
+	}
+	
+	private GUIStyle GetNextStyle() {
+		current = current == background01 ? background02 : background01;
+		return current;
 	}
 }
